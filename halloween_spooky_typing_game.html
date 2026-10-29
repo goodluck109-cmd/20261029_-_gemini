@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween Spooky Typing Academy</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Outfit & Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Jua&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jua', 'Outfit', sans-serif;
+            background: #0f0d1b;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        /* 톤다운된 할로윈 무드 배경 스카이/클라우드 */
+        .spooky-bg {
+            background: radial-gradient(circle at 50% 20%, #1a1528 0%, #0d0a14 70%, #050408 100%);
+        }
+
+        /* 3D 클라우드 & 시어(Sheer) 안개 효과 */
+        .fog-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .fog-cloud {
+            position: absolute;
+            background: radial-gradient(circle, rgba(147, 112, 219, 0.15) 0%, rgba(75, 0, 130, 0.08) 60%, rgba(0,0,0,0) 80%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: floatFog 25s infinite ease-in-out alternate;
+        }
+
+        @keyframes floatFog {
+            0% { transform: translate(-10%, -10%) scale(1); }
+            50% { transform: translate(15%, 10%) scale(1.2); }
+            100% { transform: translate(-5%, 15%) scale(0.9); }
+        }
+
+        /* 둥둥 떠다니는 배경 오브젝트 */
+        .floating-object {
+            position: absolute;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.65;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6));
+            animation: floatAnim linear infinite alternate;
+            object-fit: contain;
+        }
+
+        @keyframes floatAnim {
+            0% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(-25px) rotate(8deg) scale(1.05); }
+            100% { transform: translateY(15px) rotate(-6deg) scale(0.95); }
+        }
+
+        /* 거미줄 모서리 데코 (검정색 세련된 스타일) */
+        .web-corner {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 3;
+            color: #0d0a14;
+        }
+
+        /* 게임 캔버스 및 단어 떨어지는 스타일 */
+        .word-bubble {
+            position: absolute;
+            padding: 8px 18px;
+            border-radius: 20px;
+            background: rgba(28, 25, 43, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            color: #f3e8ff;
+            font-size: 1.15rem;
+            font-weight: 600;
+            transition: border-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .word-bubble.matched-highlight {
+            border-color: #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+            color: #fbbf24;
+        }
+
+        /* 피버 타임 스타일 */
+        .fever-active {
+            animation: feverPulse 1s infinite alternate;
+            border-color: #ec4899 !important;
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.8) !important;
+        }
+
+        @keyframes feverPulse {
+            0% { background: rgba(88, 28, 135, 0.9); transform: scale(1); }
+            100% { background: rgba(157, 23, 77, 0.9); transform: scale(1.08); }
+        }
+
+        /* 마술사 한스 캐릭터 스타일 */
+        .wizard-container {
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            z-index: 25;
+            width: 240px;
+            pointer-events: none;
+            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.9));
+            transition: transform 0.3s ease;
+        }
+
+        .wizard-cast {
+            animation: castSpell 0.5s ease-in-out;
+        }
+
+        @keyframes castSpell {
+            0% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.1) translateY(-15px) rotate(-3deg); }
+            100% { transform: scale(1) translateY(0); }
+        }
+
+        /* 마법 대사 말풍선 */
+        .speech-bubble {
+            position: absolute;
+            top: -65px;
+            right: 40px;
+            background: rgba(15, 13, 27, 0.95);
+            border: 1px solid #a855f7;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #e9d5ff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 30;
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 30px;
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: rgba(15, 13, 27, 0.95) transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* 3D 글래스모피즘 UI 카드 */
+        .glass-card {
+            background: rgba(23, 20, 38, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* 피버 타이머 게이지 */
+        .fever-bar-inner {
+            transition: width 0.3s linear;
+        }
+
+        /* 네온 텍스트 효과 */
+        .glow-text-purple {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+        .glow-text-orange {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6), 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body class="spooky-bg h-screen w-screen relative flex flex-col justify-between overflow-hidden">
+
+    <!-- 3D 클라우드 안개 배경 -->
+    <div class="fog-container">
+        <div class="fog-cloud w-[500px] h-[500px] top-[-100px] left-[-100px]"></div>
+        <div class="fog-cloud w-[600px] h-[600px] bottom-[-150px] right-[-150px]" style="animation-delay: -10s;"></div>
+        <div class="fog-cloud w-[400px] h-[400px] top-[40%] left-[30%]" style="animation-delay: -5s;"></div>
+    </div>
+
+    <!-- 거미줄 모서리 데코 (검정색 톤) -->
+    <svg class="web-corner top-0 left-0" viewBox="0 0 100 100" fill="none" stroke="#181528" stroke-width="2.5">
+        <path d="M0,0 L100,0 C70,30 30,70 0,100 Z M20,0 C20,20 0,20 0,20 M50,0 C50,50 0,50 0,50 M80,0 C80,80 0,80 0,80" />
+    </svg>
+    <svg class="web-corner top-0 right-0 transform scale-x-[-1]" viewBox="0 0 100 100" fill="none" stroke="#181528" stroke-width="2.5">
+        <path d="M0,0 L100,0 C70,30 30,70 0,100 Z M20,0 C20,20 0,20 0,20 M50,0 C50,50 0,50 0,50 M80,0 C80,80 0,80 0,80" />
+    </svg>
+
+    <!-- 배경에 둥둥 떠다니는 캐릭터 & 아이콘들 -->
+    <div id="floatingContainer"></div>
+
+    <!-- 상단 헤더 & 대시보드 -->
+    <header class="relative z-20 w-full px-6 py-4 flex justify-between items-center glass-card border-b border-purple-900/30">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">🎃</span>
+            <div>
+                <h1 class="text-xl font-bold tracking-wide glow-text-purple text-purple-300">Spooky Typing</h1>
+                <p class="text-xs text-purple-400/70">IT & AI Halloween Edition</p>
+            </div>
+        </div>
+
+        <!-- 점수 및 상태판 -->
+        <div class="flex items-center space-x-6 text-sm md:text-base">
+            <div class="flex items-center space-x-2 bg-purple-950/50 px-4 py-2 rounded-xl border border-purple-800/40">
+                <span class="text-purple-400">SCORE</span>
+                <span id="scoreDisplay" class="font-extrabold text-2xl text-amber-400 glow-text-orange">0</span>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-purple-950/50 px-4 py-2 rounded-xl border border-purple-800/40">
+                <span class="text-purple-400">LIFE</span>
+                <div id="lifeDisplay" class="flex space-x-1 text-red-500 text-lg">
+                    <i class="fa-solid fa-heart"></i>
+                    <i class="fa-solid fa-heart"></i>
+                    <i class="fa-solid fa-heart"></i>
+                    <i class="fa-solid fa-heart"></i>
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+            </div>
+
+            <!-- 한/영 토글 버튼 -->
+            <button id="langToggleBtn" class="flex items-center space-x-2 bg-indigo-900/60 hover:bg-indigo-800 px-4 py-2 rounded-xl border border-indigo-500/40 transition active:scale-95">
+                <i class="fa-solid fa-globe text-indigo-300"></i>
+                <span id="langText" class="font-bold text-indigo-200">한글 (KOR)</span>
+            </button>
+
+            <!-- 사운드 토글 -->
+            <button id="soundToggleBtn" class="p-2.5 bg-purple-900/40 hover:bg-purple-800/60 rounded-xl border border-purple-700/40 text-purple-300 transition">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 게임 중앙 메인 영역 -->
+    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto flex flex-col justify-between p-4 overflow-hidden">
+        
+        <!-- 피버 타임 알림 / 바 -->
+        <div class="w-full mb-2">
+            <div class="flex justify-between items-center text-xs mb-1 px-1">
+                <span id="feverStatusText" class="text-purple-300 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> FEVER CHARGE
+                </span>
+                <span id="feverTimerText" class="text-pink-400 font-bold">READY</span>
+            </div>
+            <div class="w-full bg-purple-950/80 rounded-full h-2.5 p-0.5 border border-purple-800/50">
+                <div id="feverBar" class="fever-bar-inner bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400 h-full rounded-full w-0"></div>
+            </div>
+        </div>
+
+        <!-- 단어들이 떨어지는 게임 영역 (Drop Area) -->
+        <div id="gameCanvas" class="relative flex-1 w-full rounded-2xl glass-card overflow-hidden my-2 border border-purple-800/20">
+            
+            <!-- 피버 타임 대형 이펙트 배너 -->
+            <div id="feverBanner" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                <h2 class="text-6xl font-extrabold text-pink-500/20 tracking-widest animate-ping uppercase">Fever Time 2X</h2>
+            </div>
+
+            <!-- 시작 / 게임 오버 오버레이 모달 -->
+            <div id="startOverlay" class="absolute inset-0 z-30 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+                <div class="w-28 h-28 mb-4 rounded-full border-2 border-purple-500/50 p-1 bg-purple-950/80 shadow-2xl flex items-center justify-center overflow-hidden">
+                    <img id="hansAvatarImg" src="한스.png" alt="Hans Wizard" class="object-cover w-full h-full rounded-full">
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-purple-200 mb-2 glow-text-purple">한스 마술사의 할로윈 타자 아카데미</h2>
+                <p class="text-purple-300/80 text-sm max-w-md mb-6 leading-relaxed">
+                    하늘에서 떨어지는 IT, AI, 디지털 기술 단어 마법을 빠르게 입력하여 파괴하세요!<br>
+                    맞추면 <span class="text-amber-400 font-bold">+5점</span>, 놓치거나 틀리면 <span class="text-red-400 font-bold">-5점</span> 및 체력 감소!
+                </p>
+                
+                <button id="startGameBtn" class="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-purple-900/50 hover:shadow-pink-900/60 transform hover:-translate-y-0.5 active:translate-y-0 transition">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 게임 시작하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 하단 입력 창 영역 -->
+        <div class="relative z-20 w-full mt-2">
+            <div class="relative flex items-center max-w-2xl mx-auto">
+                <input type="text" id="wordInput" autocomplete="off" disabled placeholder="게임 시작 버튼을 눌러주세요..." 
+                    class="w-full px-6 py-4 text-center text-xl font-bold bg-purple-950/80 border-2 border-purple-600/60 rounded-2xl text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 shadow-xl transition backdrop-blur-md">
+                <div class="absolute right-4 text-purple-400/60 text-sm font-semibold pointer-events-none hidden md:block">
+                    [ENTER]
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 우측 하단 한스 마술사 캐릭터 & 말풍선 -->
+    <div class="wizard-container" id="wizardContainer">
+        <div id="wizardSpeech" class="speech-bubble">
+            할로윈 마법 타자 연습을 시작해볼까? 🧙‍♂️
+        </div>
+        <img id="wizardImg" src="한스.png" alt="Hans the Wizard" class="w-full h-auto object-contain">
+    </div>
+
+    <script>
+        /**
+         * 30년 경력 게임 프로그래머의 할로윈 타자 게임 로직
+         */
+
+        // 1. 데이터베이스: IT, AI, 유튜브, 클라우드 관련 전문 단어 데이터 (한글/영문)
+        const WORD_DATABASE = {
+            KOR: [
+                "인공지능", "머신러닝", "딥러닝", "알고리즘", "빅데이터", "클라우드", 
+                "프롬프트", "파이썬", "자바스크립트", "유튜브", "스트리밍", "알고리즘",
+                "카메라", "인코딩", "디코딩", "생성형AI", "트랜스포머", "뉴럴네트워크",
+                "데이터베이스", "서버리스", "블록체인", "메타버스", "오픈소스", "컴파일러",
+                "프론트엔드", "백엔드", "API호출", "인터페이스", "크리에이터", "섬네일",
+                "구독과좋아요", "트래픽", "해시태그", "임베딩", "파인튜닝", "토큰"
+            ],
+            ENG: [
+                "Artificial", "Intelligence", "MachineLearning", "DeepLearning", "Algorithm",
+                "CloudNative", "PromptEngine", "Python", "JavaScript", "YouTube",
+                "Streaming", "Encoder", "Decoder", "GenerativeAI", "Transformer",
+                "NeuralNetwork", "Database", "Serverless", "Blockchain", "Metaverse",
+                "OpenSource", "Compiler", "Frontend", "Backend", "API",
+                "Interface", "Creator", "Thumbnail", "Subscriber", "Traffic",
+                "Hashtag", "Embedding", "FineTuning", "Token", "GPU", "LLM"
+            ]
+        };
+
+        // 이미지 자원 레퍼런스 (폴더 내 파일명과 정확히 연결)
+        const CUSTOM_ASSETS = {
+            hans: "한스.png",
+            teletubby: "텔레토비.png",
+            molly: "메가스페이스몰리.png",
+            hirono: "히로노.png",
+            spiderweb: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='black' stroke-width='4'><path d='M50 0v100M0 50h100M15 15l70 70M15 85l70-70M50 50m-15 0a15 15 0 1 0 30 0a15 15 0 1 0 -30 0M50 50m-30 0a30 30 0 1 0 60 0a30 30 0 1 0 -60 0'/></svg>"
+        };
+
+        // 이미지 로딩 실패 시 폴백 이미지 세팅 함수
+        function bindImageFallback() {
+            const hansImg = document.getElementById('wizardImg');
+            const hansAvatar = document.getElementById('hansAvatarImg');
+            
+            const handleHansError = (imgEl) => {
+                imgEl.onerror = null;
+                imgEl.src = "https://placehold.co/300x450/3b0764/e9d5ff?text=Hans+Wizard";
+            };
+
+            if (hansImg) hansImg.onerror = () => handleHansError(hansImg);
+            if (hansAvatar) hansAvatar.onerror = () => handleHansError(hansAvatar);
+        }
+
+        // 한스 마술사의 할로윈 음산/귀여운 대사 목록
+        const WIZARD_SPEECHES = {
+            start: "수수께끼의 할로윈 마법 단어가 밀려온다!",
+            hit: ["주문을 파괴했다!", "제법이군!", "훌륭한 타자속도다!", "마법 발동!"],
+            miss: ["으악! 놓쳤잖아!", "마법에 당했다!", "정신 차리게나!", "체력이 감소했어!"],
+            fever: "🎃 피버 타임! 점수가 2배로 폭발한다!",
+            gameover: "마법 에너지가 다했다... 다시 도전해보게!"
+        };
+
+        // 게임 상태 설정 변수
+        let currentLang = 'KOR'; // 'KOR' | 'ENG'
+        let score = 0;
+        let life = 5;
+        let isPlaying = false;
+        let activeWords = []; // 떨어지는 단어 객체 array
+        let spawnInterval = null;
+        let gameLoopInterval = null;
+        let feverTimerInterval = null;
+
+        let feverProgress = 0; // 0 ~ 100%
+        let isFeverActive = false;
+        let feverTimeLeft = 10; // 10초
+        let secondsUntilFever = 30; // 30초 주기
+
+        let isMuted = false;
+        let audioCtx = null; // Web Audio API
+
+        // DOM 요소 획득
+        const gameCanvas = document.getElementById('gameCanvas');
+        const wordInput = document.getElementById('wordInput');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const lifeDisplay = document.getElementById('lifeDisplay');
+        const startOverlay = document.getElementById('startOverlay');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const langToggleBtn = document.getElementById('langToggleBtn');
+        const langText = document.getElementById('langText');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const feverBar = document.getElementById('feverBar');
+        const feverStatusText = document.getElementById('feverStatusText');
+        const feverTimerText = document.getElementById('feverTimerText');
+        const feverBanner = document.getElementById('feverBanner');
+        const wizardSpeech = document.getElementById('wizardSpeech');
+        const wizardContainer = document.getElementById('wizardContainer');
+
+        // 초기화 함수
+        window.addEventListener('DOMContentLoaded', () => {
+            bindImageFallback();
+            initFloatingBackground();
+            setupEventListeners();
+        });
+
+        // 2. 배경에 떠다니는 3D/클라우드 스타일 할로윈 오브젝트 생성 (텔레토비, 몰리, 히로노, 거미줄 등)
+        function initFloatingBackground() {
+            const container = document.getElementById('floatingContainer');
+            container.innerHTML = ''; // 초기화
+
+            const items = [
+                { src: CUSTOM_ASSETS.teletubby, size: '100px', duration: '18s', delay: '0s', top: '15%', left: '8%', alt: '텔레토비' },
+                { src: CUSTOM_ASSETS.molly, size: '110px', duration: '22s', delay: '-5s', top: '55%', left: '80%', alt: '메가스페이스몰리' },
+                { src: CUSTOM_ASSETS.hirono, size: '105px', duration: '20s', delay: '-8s', top: '20%', left: '72%', alt: '히로노' },
+                { src: CUSTOM_ASSETS.spiderweb, size: '130px', duration: '26s', delay: '-10s', top: '65%', left: '10%', alt: '거미줄' },
+                { src: CUSTOM_ASSETS.teletubby, size: '85px', duration: '21s', delay: '-12s', top: '35%', left: '42%', alt: '텔레토비' },
+                { src: CUSTOM_ASSETS.molly, size: '100px', duration: '24s', delay: '-3s', top: '70%', left: '48%', alt: '메가스페이스몰리' },
+                { src: CUSTOM_ASSETS.hirono, size: '90px', duration: '19s', delay: '-15s', top: '80%', left: '25%', alt: '히로노' },
+            ];
+
+            items.forEach((item) => {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.className = 'floating-object';
+                img.style.width = item.size;
+                img.style.height = 'auto';
+                img.style.top = item.top;
+                img.style.left = item.left;
+                img.style.animationDuration = item.duration;
+                img.style.animationDelay = item.delay;
+                
+                // 이미지 대체 폴백
+                img.onerror = () => {
+                    img.onerror = null;
+                    img.src = `https://placehold.co/100x100/2e1065/f3e8ff?text=${encodeURIComponent(item.alt)}`;
+                };
+
+                container.appendChild(img);
+            });
+        }
+
+        // 3. Web Audio API 기반 오디오 시스템
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted || !audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'hit') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'miss') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'fever') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.error("Audio error", e);
+            }
+        }
+
+        // 4. 이벤트 리스너 세팅
+        function setupEventListeners() {
+            startGameBtn.addEventListener('click', () => {
+                initAudio();
+                startGame();
+            });
+
+            // 한/영 언어 변경
+            langToggleBtn.addEventListener('click', () => {
+                currentLang = currentLang === 'KOR' ? 'ENG' : 'KOR';
+                langText.innerText = currentLang === 'KOR' ? '한글 (KOR)' : '영어 (ENG)';
+                if (isPlaying) {
+                    showWizardSpeech(currentLang === 'KOR' ? "한글 모드로 변경되었다!" : "English Mode Activated!");
+                }
+            });
+
+            // 사운드 토글
+            soundToggleBtn.addEventListener('click', () => {
+                isMuted = !isMuted;
+                soundIcon.className = isMuted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-purple-300";
+            });
+
+            // 단어 입력 매칭
+            wordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    checkWordMatch(wordInput.value.trim());
+                    wordInput.value = '';
+                }
+            });
+
+            // 실시간 입력 하이라이트
+            wordInput.addEventListener('input', () => {
+                const val = wordInput.value.trim().toLowerCase();
+                activeWords.forEach(w => {
+                    if (val && w.text.toLowerCase().startsWith(val)) {
+                        w.element.classList.add('matched-highlight');
+                    } else {
+                        w.element.classList.remove('matched-highlight');
+                    }
+                });
+            });
+        }
+
+        // 5. 마술사 한스 말풍선 애니메이션
+        function showWizardSpeech(text) {
+            wizardSpeech.innerText = text;
+            wizardSpeech.classList.add('show');
+            wizardContainer.classList.add('wizard-cast');
+
+            setTimeout(() => {
+                wizardContainer.classList.remove('wizard-cast');
+            }, 500);
+
+            setTimeout(() => {
+                wizardSpeech.classList.remove('show');
+            }, 2500);
+        }
+
+        // 6. 게임 시작
+        function startGame() {
+            score = 0;
+            life = 5;
+            isPlaying = true;
+            activeWords = [];
+            feverProgress = 0;
+            isFeverActive = false;
+            secondsUntilFever = 30;
+
+            updateUI();
+            startOverlay.classList.add('hidden');
+            wordInput.disabled = false;
+            wordInput.focus();
+
+            // 이전 타이머 해제
+            clearInterval(spawnInterval);
+            clearInterval(gameLoopInterval);
+            clearInterval(feverTimerInterval);
+
+            // 기존 단어 제거
+            const existingWords = gameCanvas.querySelectorAll('.word-bubble');
+            existingWords.forEach(el => el.remove());
+
+            showWizardSpeech(WIZARD_SPEECHES.start);
+
+            // 루프 개시
+            spawnInterval = setInterval(spawnWord, isFeverActive ? 900 : 1600);
+            gameLoopInterval = setInterval(updateGameLoop, 50);
+            feverTimerInterval = setInterval(updateFeverLogic, 1000);
+        }
+
+        // 7. 떨어지는 단어 생성 (산성비)
+        function spawnWord() {
+            if (!isPlaying) return;
+
+            const wordList = WORD_DATABASE[currentLang];
+            const randomText = wordList[Math.floor(Math.random() * wordList.length)];
+
+            const canvasWidth = gameCanvas.clientWidth - 160;
+            const randomX = Math.max(20, Math.floor(Math.random() * canvasWidth));
+
+            const wordEl = document.createElement('div');
+            wordEl.className = 'word-bubble' + (isFeverActive ? ' fever-active' : '');
+            wordEl.innerText = randomText;
+            wordEl.style.left = `${randomX}px`;
+            wordEl.style.top = '0px';
+
+            gameCanvas.appendChild(wordEl);
+
+            const speed = 1.2 + Math.random() * 0.8 + (score > 100 ? 0.5 : 0);
+
+            activeWords.push({
+                element: wordEl,
+                text: randomText,
+                x: randomX,
+                y: 0,
+                speed: speed
+            });
+        }
+
+        // 8. 게임 프레임 업데이트
+        function updateGameLoop() {
+            if (!isPlaying) return;
+
+            const canvasHeight = gameCanvas.clientHeight - 40;
+
+            for (let i = activeWords.length - 1; i >= 0; i--) {
+                const w = activeWords[i];
+                w.y += w.speed;
+                w.element.style.top = `${w.y}px`;
+
+                if (w.y >= canvasHeight) {
+                    w.element.remove();
+                    activeWords.splice(i, 1);
+                    handleMiss();
+                }
+            }
+        }
+
+        // 9. 입력 단어 검증 logic
+        function checkWordMatch(inputText) {
+            if (!inputText || !isPlaying) return;
+
+            let matchedIndex = -1;
+
+            for (let i = 0; i < activeWords.length; i++) {
+                if (activeWords[i].text.toLowerCase() === inputText.toLowerCase()) {
+                    matchedIndex = i;
+                    break;
+                }
+            }
+
+            if (matchedIndex !== -1) {
+                const target = activeWords[matchedIndex];
+                const points = isFeverActive ? 10 : 5;
+                score += points;
+
+                target.element.style.transform = 'scale(1.3)';
+                target.element.style.opacity = '0';
+                setTimeout(() => target.element.remove(), 150);
+
+                activeWords.splice(matchedIndex, 1);
+
+                playSound('hit');
+                updateUI();
+
+                if (Math.random() < 0.3) {
+                    const speech = WIZARD_SPEECHES.hit[Math.floor(Math.random() * WIZARD_SPEECHES.hit.length)];
+                    showWizardSpeech(speech);
+                }
+            } else {
+                score = Math.max(0, score - 5);
+                playSound('miss');
+                updateUI();
+                showWizardSpeech("오타다! -5점!");
+            }
+        }
+
+        // 10. 놓쳤을 때 처리
+        function handleMiss() {
+            score = Math.max(0, score - 5);
+            life -= 1;
+            playSound('miss');
+            updateUI();
+
+            const speech = WIZARD_SPEECHES.miss[Math.floor(Math.random() * WIZARD_SPEECHES.miss.length)];
+            showWizardSpeech(speech);
+
+            if (life <= 0) {
+                gameOver();
+            }
+        }
+
+        // 11. 피버타임 시스템
+        function updateFeverLogic() {
+            if (!isPlaying) return;
+
+            if (!isFeverActive) {
+                secondsUntilFever--;
+                const progressPercent = ((30 - secondsUntilFever) / 30) * 100;
+                feverBar.style.width = `${progressPercent}%`;
+                feverTimerText.innerText = `${secondsUntilFever}s`;
+
+                if (secondsUntilFever <= 0) {
+                    isFeverActive = true;
+                    feverTimeLeft = 10;
+                    playSound('fever');
+                    showWizardSpeech(WIZARD_SPEECHES.fever);
+                    feverBanner.classList.remove('hidden');
+                    feverStatusText.innerHTML = `<i class="fa-solid fa-fire text-pink-400 animate-bounce"></i> FEVER TIME ACTIVE!`;
+                    
+                    clearInterval(spawnInterval);
+                    spawnInterval = setInterval(spawnWord, 800);
+                }
+            } else {
+                feverTimeLeft--;
+                const progressPercent = (feverTimeLeft / 10) * 100;
+                feverBar.style.width = `${progressPercent}%`;
+                feverTimerText.innerText = `${feverTimeLeft}s`;
+
+                if (feverTimeLeft <= 0) {
+                    isFeverActive = false;
+                    secondsUntilFever = 30;
+                    feverBanner.classList.add('hidden');
+                    feverStatusText.innerHTML = `<i class="fa-solid fa-bolt text-amber-400"></i> FEVER CHARGE`;
+
+                    clearInterval(spawnInterval);
+                    spawnInterval = setInterval(spawnWord, 1600);
+                }
+            }
+        }
+
+        // 12. UI 실시간 업데이트
+        function updateUI() {
+            scoreDisplay.innerText = score;
+
+            lifeDisplay.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                if (i < life) {
+                    lifeDisplay.innerHTML += '<i class="fa-solid fa-heart"></i>';
+                } else {
+                    lifeDisplay.innerHTML += '<i class="fa-regular fa-heart text-purple-900/60"></i>';
+                }
+            }
+        }
+
+        // 13. 게임 오버
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(spawnInterval);
+            clearInterval(gameLoopInterval);
+            clearInterval(feverTimerInterval);
+
+            wordInput.disabled = true;
+            feverBanner.classList.add('hidden');
+
+            showWizardSpeech(WIZARD_SPEECHES.gameover);
+
+            setTimeout(() => {
+                startOverlay.innerHTML = `
+                    <div class="w-28 h-28 mb-4 rounded-full border-2 border-red-500/50 p-1 bg-purple-950/80 shadow-2xl flex items-center justify-center overflow-hidden">
+                        <img src="한스.png" alt="Hans Wizard" class="object-cover w-full h-full rounded-full" onerror="this.src='https://placehold.co/100x100/3b0764/e9d5ff?text=Hans'">
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-red-400 mb-2">GAME OVER</h2>
+                    <p class="text-purple-200 text-lg mb-1">최종 점수: <span class="text-amber-400 font-bold">${score} 점</span></p>
+                    <p class="text-purple-400/80 text-sm mb-6">한스 마술사의 마법 연습을 다시 시작하시겠습니까?</p>
+                    
+                    <button id="restartBtn" class="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-purple-900/50 transition">
+                        <i class="fa-solid fa-rotate-right mr-2"></i> 다시 도전하기
+                    </button>
+                `;
+                startOverlay.classList.remove('hidden');
+
+                document.getElementById('restartBtn').addEventListener('click', () => {
+                    startOverlay.classList.add('hidden');
+                    startGame();
+                });
+            }, 600);
+        }
+    </script>
+</body>
+</html>
